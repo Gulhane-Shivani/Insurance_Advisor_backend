@@ -7,6 +7,17 @@ from ..schemas import schemas
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
+@router.get("/stats")
+def get_admin_stats(db: Session = Depends(get_db)):
+    user_count = db.query(models.User).count()
+    contact_count = db.query(models.ContactMessage).count()
+    insurance_count = db.query(models.InsuranceApplication).count()
+    return {
+        "users": user_count,
+        "contacts": contact_count,
+        "insurance": insurance_count
+    }
+
 # Contacts Management
 @router.get("/contacts", response_model=List[schemas.ContactMessageResponse])
 def get_all_contacts(db: Session = Depends(get_db)):
