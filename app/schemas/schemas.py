@@ -31,6 +31,23 @@ class ContactMessageResponse(ContactMessageCreate):
     class Config:
         from_attributes = True
 
+# Insurance Schemas
+class InsuranceApplicationBase(BaseModel):
+    user_name: str
+    type: str
+    amount: str
+    status: str = "Pending"
+
+class InsuranceApplicationResponse(InsuranceApplicationBase):
+    id: int
+    applied_date: datetime
+
+    class Config:
+        from_attributes = True
+
+class InsuranceApplicationStatusUpdate(BaseModel):
+    status: str
+
 # Token Schemas
 class Token(BaseModel):
     access_token: str
@@ -41,5 +58,5 @@ class TokenData(BaseModel):
     email: Optional[str] = None
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: str
     password: str

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database.database import engine, Base
-from .routes import auth, contact
+from .routes import auth, contact, admin
 
 # Create database tables
 # In production, use migrations (like Alembic)
@@ -26,6 +26,7 @@ app.add_middleware(
 # Include Routers
 app.include_router(auth.router)
 app.include_router(contact.router)
+app.include_router(admin.router)
 
 @app.get("/")
 def root():
