@@ -37,7 +37,7 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
 def login(login_data: schemas.LoginRequest, db: Session = Depends(get_db)):
     # Check for hardcoded admin credentials
     if login_data.email == security.ADMIN_EMAIL and login_data.password == security.ADMIN_PASSWORD:
-        access_token = security.create_access_token(data={"sub": "admin"})
+        access_token = security.create_access_token(data={"sub": security.ADMIN_EMAIL})
         return {
             "access_token": access_token, 
             "token_type": "bearer",
