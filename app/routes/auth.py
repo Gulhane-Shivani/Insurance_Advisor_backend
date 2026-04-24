@@ -36,15 +36,16 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
 @router.post("/login", response_model=schemas.Token)
 def login(login_data: schemas.LoginRequest, db: Session = Depends(get_db)):
     # Check for hardcoded admin credentials
-    if login_data.email == "admin@gmail.com" and login_data.password == "adminPass":
+    if login_data.email == security.ADMIN_EMAIL and login_data.password == security.ADMIN_PASSWORD:
         access_token = security.create_access_token(data={"sub": "admin"})
         return {
             "access_token": access_token, 
             "token_type": "bearer",
             "user": {
                 "id": "admin",
-                "email": "admin@gmail.com",
-                "full_name": "Administrator"
+                "email": security.ADMIN_EMAIL,
+                "full_name": "Administrator",
+                "role": "admin"
             }
         }
 
@@ -67,6 +68,7 @@ def login(login_data: schemas.LoginRequest, db: Session = Depends(get_db)):
         "user": {
             "id": str(user.id),
             "email": user.email,
-            "full_name": user.full_name
+            "full_name": user.full_name,
+            "role": "user"
         }
     }
