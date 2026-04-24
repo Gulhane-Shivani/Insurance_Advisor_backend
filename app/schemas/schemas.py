@@ -33,9 +33,15 @@ class ContactMessageResponse(ContactMessageCreate):
 
 # Insurance Schemas
 class InsuranceApplicationBase(BaseModel):
-    user_name: str
-    type: str
-    amount: str
+    full_name: str
+    email: EmailStr
+    phone_number: str
+    insurance_type: str
+    vehicle_make: str
+    vehicle_model: str
+    manufacturing_year: str
+    registration_number: str
+    message: Optional[str] = None
     status: str = "Pending"
 
 class InsuranceApplicationResponse(InsuranceApplicationBase):

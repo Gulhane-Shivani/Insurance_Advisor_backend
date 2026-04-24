@@ -25,8 +25,14 @@ class InsuranceApplication(Base):
     __tablename__ = "insurance_applications"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_name = Column(String, nullable=False)
-    type = Column(String, nullable=False)
-    amount = Column(String, nullable=False)
+    full_name = Column(String, nullable=False)
+    email = Column(String, nullable=False)
+    phone_number = Column(String, nullable=False)
+    insurance_type = Column(String, nullable=False)
+    vehicle_make = Column(String, nullable=False)
+    vehicle_model = Column(String, nullable=False)
+    manufacturing_year = Column(String, nullable=False)
+    registration_number = Column(String, nullable=False)
+    message = Column(Text, nullable=True)
     status = Column(String, default="Pending")
     applied_date = Column(DateTime(timezone=True), server_default=func.now())
