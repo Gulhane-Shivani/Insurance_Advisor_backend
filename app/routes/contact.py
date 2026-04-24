@@ -2,12 +2,17 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from ..database.database import get_db
 from ..models import models
+from ..utils import security
 from ..schemas import schemas
 
 router = APIRouter(tags=["Contact"])
 
 @router.post("/contact", status_code=status.HTTP_201_CREATED)
-def submit_contact_form(message: schemas.ContactMessageCreate, db: Session = Depends(get_db)):
+def submit_contact_form(
+    message: schemas.ContactMessageCreate, 
+    db: Session = Depends(get_db),
+    current_user: str = Depends(security.get_current_user)
+):
     new_message = models.ContactMessage(
         full_name=message.full_name,
         email=message.email,
