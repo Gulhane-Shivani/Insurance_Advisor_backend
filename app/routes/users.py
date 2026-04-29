@@ -11,6 +11,17 @@ router = APIRouter(prefix="/users", tags=["User Management"])
 # Only SUPER_ADMIN can manage users
 super_admin_only = security.RoleChecker([UserRole.SUPER_ADMIN])
 
+@router.get("/stats")
+def get_user_stats(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(super_admin_only)
+):
+    stats = {}
+    for role in UserRole:
+        count = db.query(User).filter(User.role == role).count()
+        stats[role.value] = count
+    return stats
+
 @router.post("/", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)
 def create_user(
     user_data: schemas.UserCreate, 
