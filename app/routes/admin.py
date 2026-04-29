@@ -4,20 +4,21 @@ from typing import List
 from ..database.database import get_db
 from ..models import models
 from ..schemas import schemas
+from ..models.models import UserRole
 
 from ..utils import security
-from ..schemas import schemas
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
+
+# Define role-based access
+admin_access = security.RoleChecker([UserRole.SUPER_ADMIN, UserRole.ADMIN])
+staff_access = security.RoleChecker([UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.AGENT, UserRole.CSR])
 
 @router.get("/stats")
 def get_admin_stats(
     db: Session = Depends(get_db),
-    current_user: dict = Depends(security.get_current_user)
+    current_user: dict = Depends(admin_access)
 ):
-    # Basic check: if current_user role is super_admin or admin
-    if current_user.get("role") not in ["super_admin", "admin"]:
-        raise HTTPException(status_code=403, detail="Not authorized")
     user_count = db.query(models.User).count()
     contact_count = db.query(models.ContactMessage).count()
     insurance_count = db.query(models.InsuranceApplication).count()
@@ -31,10 +32,10 @@ def get_admin_stats(
 @router.get("/contacts", response_model=List[schemas.ContactMessageResponse])
 def get_all_contacts(
     db: Session = Depends(get_db),
-    current_user: dict = Depends(security.get_current_user)
+    current_user: dict = Depends(staff_access)
 ):
-    if current_user.get("role") not in ["super_admin", "admin", "csr"]:
-        raise HTTPException(status_code=403, detail="Not authorized")
+    # Agents might not need all contacts, but CSRs and Admins do. 
+    # For now, following the pattern of allowing staff.
     contacts = db.query(models.ContactMessage).order_by(models.ContactMessage.created_at.desc()).all()
     return contacts
 
@@ -42,24 +43,20 @@ def get_all_contacts(
 def delete_contact(
     contact_id: int, 
     db: Session = Depends(get_db),
-    current_user: dict = Depends(security.get_current_user)
+    current_user: dict = Depends(admin_access)
 ):
-    if current_user.get("role") not in ["super_admin", "admin"]:
-        raise HTTPException(status_code=403, detail="Not authorized")
     contact = db.query(models.ContactMessage).filter(models.ContactMessage.id == contact_id).first()
     if not contact:
         raise HTTPException(status_code=404, detail="Contact not found")
     db.delete(contact)
     db.commit()
 
-# Users Management
+# Users Management (Old, now handled by /users router but keeping for backward compatibility or basic list)
 @router.get("/users", response_model=List[schemas.UserResponse])
 def get_all_users(
     db: Session = Depends(get_db),
-    current_user: dict = Depends(security.get_current_user)
+    current_user: dict = Depends(admin_access)
 ):
-    if current_user.get("role") not in ["super_admin", "admin"]:
-        raise HTTPException(status_code=403, detail="Not authorized")
     users = db.query(models.User).order_by(models.User.created_at.desc()).all()
     return users
 
@@ -67,10 +64,8 @@ def get_all_users(
 def delete_user(
     user_id: int, 
     db: Session = Depends(get_db),
-    current_user: dict = Depends(security.get_current_user)
+    current_user: dict = Depends(admin_access)
 ):
-    if current_user.get("role") not in ["super_admin", "admin"]:
-        raise HTTPException(status_code=403, detail="Not authorized")
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -81,10 +76,8 @@ def delete_user(
 @router.get("/insurance", response_model=List[schemas.InsuranceApplicationResponse])
 def get_all_insurance(
     db: Session = Depends(get_db),
-    current_user: dict = Depends(security.get_current_user)
+    current_user: dict = Depends(staff_access)
 ):
-    if current_user.get("role") not in ["super_admin", "admin", "agent", "csr"]:
-        raise HTTPException(status_code=403, detail="Not authorized")
     insurances = db.query(models.InsuranceApplication).order_by(models.InsuranceApplication.applied_date.desc()).all()
     return insurances
 
@@ -93,10 +86,8 @@ def update_insurance_status(
     insurance_id: int, 
     status_update: schemas.InsuranceApplicationStatusUpdate, 
     db: Session = Depends(get_db),
-    current_user: dict = Depends(security.get_current_user)
+    current_user: dict = Depends(staff_access)
 ):
-    if current_user.get("role") not in ["super_admin", "admin", "agent", "csr"]:
-        raise HTTPException(status_code=403, detail="Not authorized")
     insurance = db.query(models.InsuranceApplication).filter(models.InsuranceApplication.id == insurance_id).first()
     if not insurance:
         raise HTTPException(status_code=404, detail="Insurance application not found")

@@ -1,6 +1,14 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime
+import enum
+from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, Enum
 from sqlalchemy.sql import func
 from ..database.database import Base
+
+class UserRole(str, enum.Enum):
+    SUPER_ADMIN = "SUPER_ADMIN"
+    ADMIN = "ADMIN"
+    AGENT = "AGENT"
+    CSR = "CSR"
+    USER = "USER"
 
 class User(Base):
     __tablename__ = "users"
@@ -8,9 +16,12 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     full_name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
-    password = Column(String, nullable=False)
-    role = Column(String, default="user") # roles: user, agent, csr, admin, super_admin
+    phone = Column(String, nullable=True)
+    password_hash = Column(String, nullable=False)
+    role = Column(Enum(UserRole), default=UserRole.USER, nullable=False)
+    is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 class ContactMessage(Base):
     __tablename__ = "contact_messages"
