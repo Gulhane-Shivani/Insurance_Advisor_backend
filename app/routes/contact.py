@@ -11,7 +11,7 @@ router = APIRouter(tags=["Contact"])
 def submit_contact_form(
     message: schemas.ContactMessageCreate, 
     db: Session = Depends(get_db),
-    current_user: str = Depends(security.get_current_user)
+    current_user: dict = Depends(security.get_current_user)
 ):
     new_message = models.ContactMessage(
         full_name=message.full_name,

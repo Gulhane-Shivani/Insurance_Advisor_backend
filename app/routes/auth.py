@@ -24,7 +24,8 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     new_user = models.User(
         full_name=user.full_name,
         email=user.email,
-        password=hashed_password
+        password=hashed_password,
+        role=user.role
     )
     
     db.add(new_user)
@@ -37,7 +38,7 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
 def login(login_data: schemas.LoginRequest, db: Session = Depends(get_db)):
     # Check for hardcoded admin credentials
     if login_data.email == security.ADMIN_EMAIL and login_data.password == security.ADMIN_PASSWORD:
-        access_token = security.create_access_token(data={"sub": security.ADMIN_EMAIL})
+        access_token = security.create_access_token(data={"sub": security.ADMIN_EMAIL, "role": "super_admin"})
         return {
             "access_token": access_token, 
             "token_type": "bearer",
@@ -45,7 +46,7 @@ def login(login_data: schemas.LoginRequest, db: Session = Depends(get_db)):
                 "id": "admin",
                 "email": security.ADMIN_EMAIL,
                 "full_name": "Administrator",
-                "role": "admin"
+                "role": "super_admin"
             }
         }
 
@@ -59,8 +60,8 @@ def login(login_data: schemas.LoginRequest, db: Session = Depends(get_db)):
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # Generate JWT token
-    access_token = security.create_access_token(data={"sub": user.email})
+    # Generate JWT token with role
+    access_token = security.create_access_token(data={"sub": user.email, "role": user.role})
     
     return {
         "access_token": access_token, 
@@ -69,6 +70,6 @@ def login(login_data: schemas.LoginRequest, db: Session = Depends(get_db)):
             "id": str(user.id),
             "email": user.email,
             "full_name": user.full_name,
-            "role": "user"
+            "role": user.role
         }
     }

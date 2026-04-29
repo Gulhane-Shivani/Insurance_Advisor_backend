@@ -6,6 +6,7 @@ from typing import Optional
 class UserBase(BaseModel):
     email: EmailStr
     full_name: str
+    role: Optional[str] = "user"
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=6)
@@ -62,6 +63,7 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: Optional[str] = None
+    role: Optional[str] = None
 
 class LoginRequest(BaseModel):
     email: str

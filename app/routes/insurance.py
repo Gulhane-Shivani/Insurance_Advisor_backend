@@ -11,7 +11,7 @@ router = APIRouter(tags=["Insurance"])
 def apply_for_insurance(
     application: schemas.InsuranceApplicationBase, 
     db: Session = Depends(get_db),
-    current_user: str = Depends(security.get_current_user)
+    current_user: dict = Depends(security.get_current_user)
 ):
     new_app = models.InsuranceApplication(
         full_name=application.full_name,
@@ -35,8 +35,9 @@ def apply_for_insurance(
 @router.get("/my-applications", response_model=list[schemas.InsuranceApplicationResponse])
 def get_my_applications(
     db: Session = Depends(get_db),
-    current_user: str = Depends(security.get_current_user)
+    current_user: dict = Depends(security.get_current_user)
 ):
-    # current_user is the email
-    applications = db.query(models.InsuranceApplication).filter(models.InsuranceApplication.email == current_user).all()
+    # current_user is a dict containing email and role
+    user_email = current_user.get("email")
+    applications = db.query(models.InsuranceApplication).filter(models.InsuranceApplication.email == user_email).all()
     return applications
