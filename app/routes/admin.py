@@ -19,7 +19,12 @@ def get_admin_stats(
     db: Session = Depends(get_db),
     current_user: dict = Depends(admin_access)
 ):
-    user_count = db.query(models.User).count()
+    # If requester is ADMIN (not SUPER_ADMIN), only count non-admin users
+    user_query = db.query(models.User)
+    if current_user["role"] == UserRole.ADMIN:
+        user_query = user_query.filter(models.User.role.notin_([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+    
+    user_count = user_query.count()
     contact_count = db.query(models.ContactMessage).count()
     insurance_count = db.query(models.InsuranceApplication).count()
     return {
@@ -57,7 +62,12 @@ def get_all_users(
     db: Session = Depends(get_db),
     current_user: dict = Depends(admin_access)
 ):
-    users = db.query(models.User).order_by(models.User.created_at.desc()).all()
+    query = db.query(models.User)
+    # If requester is ADMIN (not SUPER_ADMIN), hide admin and super_admin data
+    if current_user["role"] == UserRole.ADMIN:
+        query = query.filter(models.User.role.notin_([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+        
+    users = query.order_by(models.User.created_at.desc()).all()
     return users
 
 @router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
