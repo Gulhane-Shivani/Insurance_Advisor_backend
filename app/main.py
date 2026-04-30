@@ -18,7 +18,7 @@ app = FastAPI(
 )
 
 # CORS Metadata
-frontend_url = os.getenv("FRONTEND_URL", "https://insurance-advisor-tau.vercel.app")
+frontend_url = os.getenv("FRONTEND_URL", "https://insurance-advisor-tau.vercel.app/")
 #frontend_url = "http://localhost:5173"
 
 app.add_middleware(
